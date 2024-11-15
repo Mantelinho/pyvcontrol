@@ -18,7 +18,6 @@
 # ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
 import logging
-from collections import namedtuple
 from struct import unpack
 
 
@@ -42,6 +41,7 @@ class viData(bytearray):
     # DT    : Devicetype
     # IS10  : Int signed, base 10 (i.e. 1 digit fixed point)
     # IU10  : Int unsigned, base 10 (i.e. 1 digit fixed point)
+    # ISNON : Int signed, no base
     # IUNON : Int unsigned, no base
     # IU3600: Int unsigned, base 3600 (i.e. hours & seconds)
     # OO    : On Off,
@@ -65,8 +65,6 @@ class viData(bytearray):
         # vito unit:
         'IS1000': {'description': 'INT signed 1000', 'type': 'integer', 'signed': True, 'read_value_transform': '1000'},
         # vito unit:
-        'ISNON': {'description': 'INT signed non', 'type': 'integer', 'signed': True, 'read_value_transform': 'non'},
-        # vito unit:
         'SC': {'description': 'SystemScheme', 'type': 'list', 'signed': False, 'read_value_transform': 'non'},
         # vito unit:
         'SN': {'description': 'Sachnummer', 'type': 'serial', 'signed': False, 'read_value_transform': 'non'},
@@ -79,9 +77,12 @@ class viData(bytearray):
     }
 
     def __init__(self, value):
-        """ to be overridden by subclass. subclass __init__ shall set default value for value and handle any extra parameters """
+        """
+        To be overridden by subclass. Subclass __init__ shall set default value for value
+        and handle any extra parameters.
+        """
         super().__init__()
-        if type(value) == bytes or type(value) == bytearray:
+        if isinstance(value, (bytes, bytearray)):
             self._create_from_raw(value)
         else:
             self._create_from_value(value)
@@ -108,7 +109,8 @@ class viData(bytearray):
         # args are passed as such to the constructor of the function
         logging.debug(f'Data factory: request to produce Data type {datatype} with args {args}')
         datatype_object = {'BA': viDataBA, 'DT': viDataDT, 'IS10': viDataIS10, 'IU10': viDataIU10,
-                           'IU3600': viDataIU3600, 'IUNON': viDataIUNON, 'RT': viDataRT, 'OO': viDataOO,
+                           'IU3600': viDataIU3600, 'ISNON': viDataISNON,
+                           'IUNON': viDataIUNON, 'RT': viDataRT, 'OO': viDataOO,
                            'ES': viDataES, 'F_E': viDataEnergy,
                            }
         if datatype in datatype_object.keys():
@@ -317,7 +319,7 @@ class viDataIS10(viData):
 
 
 class viDataIU10(viData):
-    # IS10 - signed fixed-point integer, 1 decimal
+    # IU10 - unsigned fixed-point integer, 1 decimal
     unit = {'code': 'IU10', 'description': 'INT unsigned 10', 'unit': ''}
 
     def __init__(self, value=b'\x00\x00', len=2):
@@ -351,6 +353,24 @@ class viDataIU3600(viData):
     def value(self):
         # FIXME round to two digits
         return int.from_bytes(self, 'little', signed=True) / 3600
+
+
+class viDataISNON(viData):
+    # ISNON - signed int
+    unit = {'code': 'ISNON', 'description': 'INT signed non', 'unit': ''},  # vito unit: ST
+
+    def __init__(self, value=b'\x00\x00', len=2):
+        # sets int representation based on input value
+        self.len = len  # length in bytes
+        super().__init__(value)
+
+    def _create_from_value(self, value):
+        # fixed-point number given
+        super().extend(int(value).to_bytes(self.len, 'little', signed=True))
+
+    @property
+    def value(self):
+        return int.from_bytes(self, 'little', signed=True)
 
 
 class viDataIUNON(viData):
@@ -463,7 +483,7 @@ class viDataEnergy(viData):
         self.cooling_electrical_energy = raw_data[5] * HEATING_ENERGY_FACTOR
 
     def _create_from_value(self, value):
-        raise viDataException(f'viDataEnergy can only be created from bytes.')
+        raise viDataException('viDataEnergy can only be created from bytes.')
 
     @property
     def value(self):

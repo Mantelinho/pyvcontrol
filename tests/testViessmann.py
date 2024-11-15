@@ -21,35 +21,51 @@
 
 import unittest
 import logging
+import json
 from pyvcontrol.viControl import viControl
-from pyvcontrol.viCommand import viCommand
 
 
-class MyTestCase(unittest.TestCase):
+class PhysicalTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] %(message)s")
+        f = open("conf/commandset-VSCOTHO1.json", "r")
+        cls.command_set = json.load(f)
+        f.close()
+
+    # @unittest.skip("Disabled due to dependency physical IF to VSCOTHO1")
     def test_readsequence(self):
-        vo = viControl()
+        vo = viControl(command_set=PhysicalTest.command_set)
         vo.initialize_communication()
 
-        for cmd in viCommand.command_set.keys():
+        for cmd in self.command_set.keys():
             vd = vo.execReadCmd(cmd)
             print(f'{cmd} : {vd.value}')
 
-    def test_readonly(self):
-        pass
+    # @unittest.skip("Disabled due to dependency physical IF to VSCOTHO1")
+    def test_readonly_offset(self):
+        vo = viControl(command_set=PhysicalTest.command_set)
+        vo.initialize_communication()
+        cmd = 'TempRoomTargetActual-C1'
+        vd = vo.execute_read_command(cmd)
+        print(f'{cmd} raw: {vd.hex()}')
+        print(f'{cmd} : {vd.value}')
+        self.assertIsInstance(vd.value, float)
 
+    # @unittest.skip("Disabled due to dependency physical IF to VSCOTHO1")
     def test_writesequence(self):
         # Ändert einen Datensatz und stellt ursprüngl. Wert wieder her
-        vo = viControl()
+        vo = viControl(command_set=PhysicalTest.command_set)
         vo.initialize_communication()
-        cmd = 'RaumsolltempParty'
+        cmd = 'TempRoomTarget-C1'
         v_orig = vo.execReadCmd(cmd).value
 
-        vdw = vo.execWriteCmd(cmd, v_orig + 1)
+        vo.execWriteCmd(cmd, v_orig + 1)
         vdr = vo.execReadCmd(cmd)
         print(f'Read {cmd} : {vdr.value}')
         self.assertEqual(v_orig + 1, vdr.value)
 
-        vdw = vo.execWriteCmd(cmd, v_orig)
+        vo.execWriteCmd(cmd, v_orig)
         vdr = vo.execReadCmd(cmd)
         print(f'Read {cmd} : {vdr.value}')
         self.assertEqual(v_orig, vdr.value)

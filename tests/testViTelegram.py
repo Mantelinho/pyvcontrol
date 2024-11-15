@@ -23,8 +23,53 @@ from pyvcontrol import viControl as v, viCommand as c
 from pyvcontrol.viData import viData as d
 from pyvcontrol.viTelegram import viTelegramException
 
+command_set = {
+    "Anlagentyp": {
+        "address": "00F8",
+        "length": 4,
+        "unit": "DT",
+        "description": "Anlagentyp (muss 204D sein)"
+    },
+    "WWeinmal": {
+        "address": "B020",
+        "length": 1,
+        "unit": "OO",
+        "access_mode": "write",
+        "description": "getManuell / setManuell -- 0 = normal, 1 = manueller Heizbetrieb, 2 = 1x Warmwasser auf Temp2"
+    },
+    "Aussentemperatur": {
+        "address": "0101",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Aussentemperatur (-40..70)"
+    },
+    "Warmwassertemperatur": {
+        "address": "010d",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Warmwasser: Warmwassertemperatur oben (0..95)"
+    },
+    "Betriebsmodus": {
+        "address": "B000",
+        "length": 1,
+        "unit": "BA",
+        "access_mode": "write",
+        "description": "Betriebsmodus"
+    },
+    "WWwaerme": {
+        "address": "1650",
+        "length": 4,
+        "unit": "IUNON",
+        "description": "Heizwärme  \"WW-Betrieb\", Verdichter 1"
+    }
+}
+
 
 class testviTelegram(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        c.command_set = command_set
+
     def test_readTelegram(self):
         vc = c.viCommand('Anlagentyp')
         vt = v.viTelegram(vc, 'read')
@@ -46,12 +91,16 @@ class testviTelegram(unittest.TestCase):
 
 
 class testviTelegram_resp(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        c.command_set = command_set
+
     def test_wrongchecksum(self):
         b = bytes.fromhex('4105000100f80201')
         with self.assertRaises(viTelegramException):
-            vt = v.viTelegram.from_bytes(b)
+            v.viTelegram.from_bytes(b)
 
-    def test_telegramtype(self):
+    def test_telegramtype1(self):
         b = bytes.fromhex('41 05 00 01 01 0d 02 00 00 16')
         vt = v.viTelegram.from_bytes(b)
         self.assertEqual(vt.telegram_mode, 'read')
@@ -62,7 +111,7 @@ class testviTelegram_resp(unittest.TestCase):
         vt = v.viTelegram.from_bytes(b)
         self.assertEqual(vt.telegram_mode, 'call')
 
-    def test_telegramtype(self):
+    def test_telegramtype2(self):
         b = bytes.fromhex('41 05 00 01 01 0d 02 00 00 16')
         vt = v.viTelegram.from_bytes(b)
         self.assertEqual(vt.telegram_type, 'request')
@@ -95,7 +144,7 @@ class testviTelegram_resp(unittest.TestCase):
         # 'write' telegram
         b = bytes.fromhex('41 09 01 02 16 50 04 76')
         vt = v.viTelegram.from_bytes(b)
-        vd = d.create(vt.vicmd.unit, vt.payload)
+        d.create(vt.vicmd.unit, vt.payload)
         self.assertEqual('write', vt.telegram_mode)
         self.assertEqual(8, vt.response_length)
         self.assertEqual(vt.vicmd.command_name, 'WWwaerme')

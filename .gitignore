@@ -1,2 +1,7 @@
 /deploy_pi
 /tests/Monitor.log
+*_pycache_*
+.*/
+build/
+dist/
+*.egg-info/

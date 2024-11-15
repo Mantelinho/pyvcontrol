@@ -21,11 +21,18 @@
 import logging
 
 ACCESS_MODE = 'access_mode'
+ACCESS_READ = 'read'
+ACCESS_WRITE = 'write'
+ACCESS_CALL = 'call'
 UNIT = 'unit'
 LENGTH = 'length'
 ADDRESS = 'address'
+MIN_VALUE = 'min_value'
+MAX_VALUE = 'max_value'
+OFFSET = 'offset'
 
-VITOCAL_WO1C = {
+# TODO: Remove the default command set and purely use the command set from the configuration file
+DEFAULT_CMD_SET = {
     # All Parameters are tested and working on Vitocal 200S WO1C (Baujahr 2019)
 
     # ------ Statusinfos (read only) ------
@@ -111,26 +118,21 @@ class viCommandException(Exception):
 class viCommand(bytearray):
     """Representation of a command. Object value is a bytearray of address and length."""
 
-    # =============================================================
-    # CHANGE YOUR COMMAND SET HERE:
-    command_set = VITOCAL_WO1C
-
-    # =============================================================
-
-    def __init__(self, command_name):
-        """initialize object using the attributes of the chosen command."""
-
+    def __init__(self, command_name, command_set: dict = DEFAULT_CMD_SET):
+        """Initialize object using the attributes of the chosen command."""
+        self.command_set = command_set
         try:
             command = self.command_set[command_name]
-        except:
+        except KeyError:
             raise viCommandException(f'Unknown command {command_name}')
+        self.offset = command[OFFSET] if OFFSET in command else 0
         self._command_code = command[ADDRESS]
-        self._value_bytes = command[LENGTH]
+        self._value_bytes = command[LENGTH] + self.offset
         self.unit = command[UNIT]
         self.access_mode = self._get_access_mode(command)
         self.command_name = command_name
 
-        # create bytearray representation
+        # Create bytearray representation
         b = bytes.fromhex(self._command_code) + self._value_bytes.to_bytes(1, 'big')
         super().__init__(b)
 
@@ -138,28 +140,28 @@ class viCommand(bytearray):
         if ACCESS_MODE in command.keys():
             return command[ACCESS_MODE]
         else:
-            return 'read'
+            return ACCESS_READ
 
     @classmethod
-    def _from_bytes(cls, b: bytearray):
+    def _from_bytes(cls, b: bytearray, command_set: dict = DEFAULT_CMD_SET):
         """Create command from address b given as byte, only the first two bytes of b are evaluated."""
         try:
             logging.debug(f'Convert {b.hex()} to command')
-            command_name = next(key for key, value in cls.command_set.items() if value[ADDRESS].lower() == b[0:2].hex())
-        except:
+            command_name = next(key for key, value in command_set.items() if value[ADDRESS].lower() == b[0:2].hex())
+        except StopIteration:
             raise viCommandException(f'No Command matching {b[0:2].hex()}')
-        return viCommand(command_name)
+        return viCommand(command_name, command_set)
 
-    def response_length(self, access_mode='read'):
+    def response_length(self, access_mode=ACCESS_READ):
         """Returns the number of bytes in the response."""
         # request_response:
         # 2 'address'
         # 1 'Anzahl der Bytes des Wertes'
         # x 'Wert'
-        if access_mode.lower() == 'read':
+        if access_mode.lower() == ACCESS_READ:
             return 3 + self._value_bytes
-        elif access_mode.lower() == 'write':
-            # in write mode the written values are not returned
+        elif access_mode.lower() == ACCESS_WRITE:
+            # In write mode the written values are not returned
             return 3
         else:
             return 3 + self._value_bytes

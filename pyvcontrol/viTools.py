@@ -17,6 +17,7 @@
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 # ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
+from pyvcontrol.viCommand import DEFAULT_CMD_SET
 from pyvcontrol.viControl import viControl, viTelegram, ctrlcode, viControlException
 import logging
 import curses
@@ -33,7 +34,7 @@ def viscancommands(addressrange):
     vo.initialize_communication()
 
     for addr in addressrange:
-        for kk in range(1, 5):
+        for kk in range(1, 4):
             # TODO: Inneren Teil ausschneiden und in separate Funktion? ("low level read command")
             logging.debug(f'---{hex(addr)}-{kk}------------------')
             vc = addr.to_bytes(2, 'big') + kk.to_bytes(1, 'big')
@@ -56,16 +57,15 @@ def viscancommands(addressrange):
                 logging.debug(f'received telegram {vr1.hex()} {vr2.hex()}')
 
                 if vr2[0].to_bytes(1, 'little') == viTelegram.tTypes['response']:
-                    v = int.from_bytes(vr2[-1 - kk:-1], 'little')
-                    print(f'Found working command 0x{hex(addr)}, payload length {kk}, value {v}')
-
+                    v = hex(int.from_bytes(vr2[-1 - kk:-1], 'little'))
+                    print(f'Found working command {hex(addr)}, payload length {kk}, value {v}')
 
             except Exception as e:
                 logging.error({e})
                 print(f'An exception occurred: {e}')
 
 
-def vimonitor(command_list, updateinterval=30):
+def vimonitor(command_list, command_set: dict = DEFAULT_CMD_SET, updateinterval=30):
     # repeatedly executes commands
     # commandlist is a list of strings (command names from viCommand)
 
@@ -76,11 +76,11 @@ def vimonitor(command_list, updateinterval=30):
         command_list = [command_list]
 
     logging.basicConfig(filename='Monitor.log', filemode='w', level=logging.DEBUG)
-    vo = viControl()
+    vo = viControl(command_set)
 
     standard_screen = curses.initscr()
     curses.noecho()
-    curses.cbreak()
+    # curses.cbreak()
     standard_screen.nodelay(True)
 
     loop_monitor = True
@@ -115,7 +115,7 @@ def vimonitor(command_list, updateinterval=30):
 def vi_scan_function_call(commandname, functionrange):
     # scans the function call with all parameters and print HEX and decoded OUTPUT in terminal
 
-    vo = viControl()
+    vo = viControl({})
     vo.initialize_communication()
 
     for func in functionrange:  # First Parameter is Byte
@@ -126,3 +126,7 @@ def vi_scan_function_call(commandname, functionrange):
             except Exception as e:
                 logging.error({e})
                 print(f'Day {day}: An exception occurred: {e}')
+
+
+if __name__ == '__main__':
+    viscancommands(range(9472, 9504))

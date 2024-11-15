@@ -1,0 +1,58 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.trimTrailingWhitespace": true,
+		"files.exclude": {
+			"build/": true,
+			".history*/": true,
+			"**/*cache*": true
+		},
+		"python.analysis.exclude": [
+			"build/",
+			".*/",
+			"**/*cache*"
+		],
+		"python.testing.unittestArgs": [
+			"-v",
+			"-s",
+			"./tests",
+			"-p",
+			"test*.py"
+		],
+		"python.testing.pytestEnabled": false,
+		"python.testing.unittestEnabled": true
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "pyvcontrol VSCOTHO1",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "bin/pyvcontrol",
+				"console": "integratedTerminal",
+				"args": [
+					"-c",
+					"conf/commandset-VSCOTHO1.json",
+					"${command:pickArgs}"
+				]
+			},
+			{
+				"name": "pyvcontrol WO1C",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "bin/pyvcontrol",
+				"console": "integratedTerminal",
+				"args": [
+					"-c",
+					"conf/command-set-WO1C.json",
+					"${command:pickArgs}"
+				]
+			}
+		]
+	}
+}

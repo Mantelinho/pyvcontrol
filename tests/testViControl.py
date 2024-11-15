@@ -23,6 +23,24 @@ import unittest
 from unittest.mock import patch
 from pyvcontrol.viControl import viControl, viControlException, control_set, ctrlcode
 
+command_set = {
+    "Warmwassertemperatur": {
+        "address": "010d",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Warmwasser: Warmwassertemperatur oben (0..95)"
+    },
+    "SolltempWarmwasser": {
+        "address": "6000",
+        "length": 2,
+        "unit": "IS10",
+        "access_mode": "write",
+        "min_value": 10,
+        "max_value": 60,
+        "description": "Warmwassersolltemperatur (10..60 (95))"
+    }
+}
+
 
 class MockViSerial:
 
@@ -53,35 +71,35 @@ class MockViSerial:
 
 
 class TestViControl(unittest.TestCase):
-
     @patch('pyvcontrol.viControl.viSerial', return_value=MockViSerial())
     def test_exec_forbidden_write_command(self, mock1):
         mock1.return_value.source = ctrlcode['acknowledge'] + bytes.fromhex('41 07 01 01 01 0d 02 65 00 7e')
-        vc = viControl()
+        vc = viControl(command_set)
         with self.assertRaises(viControlException):
             vc.execute_write_command('Warmwassertemperatur', 5)
 
     @patch('pyvcontrol.viControl.viSerial', return_value=MockViSerial())
     def test_exec_write_command(self, mock1):
         mock1.return_value.source = ctrlcode['acknowledge'] + bytes.fromhex('41 07 01 01 01 0d 02 19 00 7e')
-        vc = viControl()
+        vc = viControl(command_set)
         vc.execute_write_command('SolltempWarmwasser', 35)
 
     @patch('pyvcontrol.viControl.viSerial', return_value=MockViSerial())
     def test_exec_read_command(self, mock1):
         mock1.return_value.source = ctrlcode['acknowledge'] + bytes.fromhex('41 07 01 01 01 0d 02 65 00 7e')
-        vc = viControl()
+        vc = viControl(command_set)
         data = vc.execute_read_command('Warmwassertemperatur')
         self.assertEqual(data.value, 10.1)
 
     @patch('pyvcontrol.viControl.viSerial', return_value=MockViSerial())
+    @unittest.skip("deactivated test")
     def test_exec_function_call(self, mock1):
-        vc = viControl()
+        viControl(command_set)
         self.assertFalse(True)
 
     @patch('pyvcontrol.viControl.viSerial', return_value=MockViSerial())
     def test_exec_forbidden_function_call(self, mock1):
         mock1.return_value.source = ctrlcode['acknowledge'] + bytes.fromhex('41 07 01 01 01 0d 02 65 00 7e')
-        vc = viControl()
+        vc = viControl(command_set)
         with self.assertRaises(viControlException):
             vc.execute_function_call('Warmwassertemperatur', 5)

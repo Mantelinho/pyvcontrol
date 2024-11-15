@@ -1,0 +1,142 @@
+{
+    "Warmwassertemperatur": {
+        "address": "010d",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Warmwasser: Warmwassertemperatur oben (0..95)"
+    },
+    "Aussentemperatur": {
+        "address": "0101",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Aussentemperatur (-40..70)"
+    },
+    "VorlauftempSek": {
+        "address": "0105",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Heizkreis HK1: Vorlauftemperatur Sekundaer 1 (0..95)"
+    },
+    "RuecklauftempSek": {
+        "address": "0106",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Ruecklauftemperatur Sekundaer 1 (0..95)"
+    },
+    "Sekundaerpumpe": {
+        "address": "B421",
+        "length": 2,
+        "unit": "IUNON",
+        "description": "Sekundaerpumpe [%] (including one status byte)"
+    },
+    "FaktorEnergiebilanz": {
+        "address": "163F",
+        "length": 1,
+        "unit": "IUNON",
+        "description": "Faktor Energiebilanz(1 = 0.1kWh, 10 = 1kWh, 100 = 10kWh)"
+    },
+    "Heizwaerme": {
+        "address": "1640",
+        "length": 4,
+        "unit": "IUNON",
+        "description": "Heizwärme  \"Heizbetrieb\", Verdichter 1"
+    },
+    "Heizenergie": {
+        "address": "1660",
+        "length": 4,
+        "unit": "IUNON",
+        "description": "Elektroenergie \"Heizbetrieb\", Verdichter 1"
+    },
+    "WWwaerme": {
+        "address": "1650",
+        "length": 4,
+        "unit": "IUNON",
+        "description": "Heizwärme  \"WW-Betrieb\", Verdichter 1"
+    },
+    "WWenergie": {
+        "address": "1670",
+        "length": 4,
+        "unit": "IUNON",
+        "description": "Elektroenergie \"WW-Betrieb\", Verdichter 1"
+    },
+    "Verdichter": {
+        "address": "B423",
+        "length": 4,
+        "unit": "IUNON",
+        "description": "Verdichter [%] (including one status byte)"
+    },
+    "DruckSauggas": {
+        "address": "B410",
+        "length": 3,
+        "unit": "IS10",
+        "description": "Druck Sauggas [bar] (including one status byte) - Kühlmittel"
+    },
+    "DruckHeissgas": {
+        "address": "B411",
+        "length": 3,
+        "unit": "IS10",
+        "description": "Druck Heissgas [bar] (including one status byte)- Kühlmittel"
+    },
+    "TempSauggas": {
+        "address": "B409",
+        "length": 3,
+        "unit": "IS10",
+        "description": "Temperatur Sauggas [bar] (including one status byte)- Kühlmittel"
+    },
+    "TempHeissgas": {
+        "address": "B40A",
+        "length": 3,
+        "unit": "IS10",
+        "description": "Temperatur Heissgas [bar] (including one status byte)- Kühlmittel"
+    },
+    "Anlagentyp": {
+        "address": "00F8",
+        "length": 4,
+        "unit": "DT",
+        "description": "Anlagentyp (muss 204D sein)"
+    },
+    "Betriebsmodus": {
+        "address": "B000",
+        "length": 1,
+        "unit": "BA",
+        "access_mode": "write",
+        "description": "Betriebsmodus"
+    },
+    "WWeinmal": {
+        "address": "B020",
+        "length": 1,
+        "unit": "OO",
+        "access_mode": "write",
+        "description": "getManuell / setManuell -- 0 = normal, 1 = manueller Heizbetrieb, 2 = 1x Warmwasser auf Temp2"
+    },
+    "SolltempWarmwasser": {
+        "address": "6000",
+        "length": 2,
+        "unit": "IS10",
+        "access_mode": "write",
+        "min_value": 10,
+        "max_value": 60,
+        "description": "Warmwassersolltemperatur (10..60 (95))"
+    },
+    "Hysterese_Vorlauf_ein": {
+        "address": "7304",
+        "length": 2,
+        "unit": "IU10",
+        "access_mode": "write",
+        "description": "Hysterese Vorlauf ein: Verdichter schaltet im Heizbetrieb ein"
+    },
+    "Hysterese_Vorlauf_aus": {
+        "address": "7313",
+        "length": 2,
+        "unit": "IU10",
+        "access_mode": "write",
+        "description": "Hysterese Vorlauf aus: Verdichter schaltet im Heizbetrieb ab"
+    },
+    "Energiebilanz": {
+        "address": "B800",
+        "length": 16,
+        "unit": "F_E",
+        "access_mode": "call",
+        "description": "Function Call"
+    }
+}

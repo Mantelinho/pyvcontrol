@@ -17,8 +17,9 @@
 #  along with this program. If not, see <http://www.gnu.org/licenses/>.
 # ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
+# flake8: noqa: E501
 import logging
-from pyvcontrol.viCommand import viCommand
+from pyvcontrol.viCommand import DEFAULT_CMD_SET, viCommand
 
 
 class viTelegramException(Exception):
@@ -100,8 +101,8 @@ class viTelegram(bytearray):
         # payload is optional, usually of type viData
         # tType and tMode must be strings or bytes. Be careful when extracting from bytearray b - b[x] will be int not byte!
         self.vicmd = vc
-        self.tType = self.tTypes[tType.lower()] if type(tType) == str else tType  # translate to byte or use raw value
-        self.tMode = self.tModes[tMode.lower()] if type(tMode) == str else tMode  # translate to byte or use raw value
+        self.tType = self.tTypes[tType.lower()] if isinstance(tType, str) else tType  # translate to byte or use raw value
+        self.tMode = self.tModes[tMode.lower()] if isinstance(tMode, str) else tMode  # translate to byte or use raw value
         self.payload = payload  # fixme payload length not validated against expected length by command unit
         # fixme: no payload for read commands
 
@@ -140,7 +141,7 @@ class viTelegram(bytearray):
         return next(key for key, value in self.tTypes.items() if value == self.tType)
 
     @classmethod
-    def from_bytes(cls, b: bytearray):
+    def from_bytes(cls, b: bytearray, command_set: dict = DEFAULT_CMD_SET):
         # parses a byte array and returns the corresponding telegram with properties vicmd etc.
         # when parsing a response telegram, the first byte (ACK Acknowledge) must be stripped first
         # Telegram bytes are [0:4]->header, [4:6]->command code, [6]->payload length, [7:-2]-> payload, [-1]:-> checksum
@@ -155,10 +156,11 @@ class viTelegram(bytearray):
             raise viTelegramException('Startbyte not found')
 
         header = b[0:4]
+        vicmd = viCommand._from_bytes(b[4:6], command_set)
+        payload = b[7+vicmd.offset:-1]
         logging.debug(
-            f'Header: {header.hex()}, tType={header[2:3].hex()}, tMode={header[3:4].hex()}, payload={b[7:-1].hex()}')
-        vicmd = viCommand._from_bytes(b[4:6])
-        vt = viTelegram(vicmd, tType=header[2:3], tMode=header[3:4], payload=b[7:-1])
+            f'Header: {header.hex()}, tType={header[2:3].hex()}, tMode={header[3:4].hex()}, payload={payload.hex()}')
+        vt = viTelegram(vicmd, tType=header[2:3], tMode=header[3:4], payload=payload)
         return vt
 
     @classmethod

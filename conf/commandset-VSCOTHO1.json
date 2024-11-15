@@ -1,0 +1,196 @@
+{
+    "TempOutside": {
+        "address": "0800",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Temperature outside"
+    },
+    "TempOutsideDamped": {
+        "address": "5527",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Temperature outside damped"
+    },
+    "TempOutsideLowPass": {
+        "address": "5525",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Temperature outside low pass filtered"
+    },
+    "TempFlowActual-C1": {
+        "address": "2900",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Actual heating flow temperature for circuit 1"
+    },
+    "TempFlowTarget-C1": {
+        "address": "2544",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Target heating flow temperature for circuit 1"
+    },
+    "TempFlowActual-C2": {
+        "address": "3900",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Actual heating flow temperature for circuit 2"
+    },
+    "TempFlowTarget-C2": {
+        "address": "3544",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Target heating flow temperature for circuit 2"
+    },
+    "TempStorageTop": {
+        "address": "0812",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Temperature at the top of the hot water storage tank"
+    },
+    "TempSolarCollector": {
+        "address": "6564",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Temperature of the solar collector"
+    },
+    "TempSolarReturn": {
+        "address": "6566",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Temperature of the solar return (bottom of the hot water storage tank)"
+    },
+    "StatusStoragePump": {
+        "address": "6513",
+        "length": 1,
+        "unit": "OO",
+        "description": "Status (on/off) of the pump from boiler to hot water storage tank"
+    },
+    "StatusSolar": {
+        "address": "6552",
+        "length": 1,
+        "unit": "OO",
+        "description": "Status (on/off) of solar production (sun yes/no)"
+    },
+    "TempRoomTarget-C1": {
+        "address": "2306",
+        "length": 1,
+        "unit": "IUNON",
+        "access_mode": "write",
+        "description": "Room target temperature for circuit 1"
+    },
+    "TempRoomTargetReduced-C1": {
+        "address": "2307",
+        "length": 1,
+        "unit": "IUNON",
+        "access_mode": "write",
+        "description": "Room target temperature (reduced) for circuit 1"
+    },
+    "TempRoomTargetActual-C1": {
+        "address": "2500",
+        "offset": 12,
+        "length": 2,
+        "unit": "IS10",
+        "description": "Room target temperature actually used (red/norm) for circuit 1"
+    },
+    "TempRoomTarget-C2": {
+        "address": "3306",
+        "length": 1,
+        "unit": "IUNON",
+        "access_mode": "write",
+        "description": "Room target temperature for circuit 2"
+    },
+    "TempRoomTargetReduced-C2": {
+        "address": "3307",
+        "length": 1,
+        "unit": "IUNON",
+        "access_mode": "write",
+        "description": "Room target temperature (reduced) for circuit 2"
+    },
+    "TempRoomTargetActual-C2": {
+        "address": "3500",
+        "offset": 12,
+        "length": 2,
+        "unit": "IS10",
+        "description": "Room target temperature actually used (red/norm) for circuit 2"
+    },
+    "TempWaterTarget": {
+        "address": "6300",
+        "length": 1,
+        "unit": "IUNON",
+        "access_mode": "write",
+        "description": "Water target temperature (at storage tank top)"
+    },
+    "OperatingMode-C1": {
+        "address": "2323",
+        "length": 1,
+        "unit": "BA",
+        "access_mode": "write",
+        "description": "Operating mode for circuit 1"
+    },
+    "OperatingMode-C2": {
+        "address": "3323",
+        "length": 1,
+        "unit": "BA",
+        "access_mode": "write",
+        "description": "Operating mode for circuit 2"
+    },
+    "Level-C1": {
+        "address": "27D4",
+        "length": 1,
+        "unit": "ISNON",
+        "access_mode": "write",
+        "description": "Heat curve level circuit 1"
+    },
+    "Level-C2": {
+        "address": "37D4",
+        "length": 1,
+        "unit": "ISNON",
+        "access_mode": "write",
+        "description": "Heat curve level circuit 2"
+    },
+    "Gradient-C1": {
+        "address": "27D3",
+        "length": 1,
+        "unit": "IS10",
+        "access_mode": "write",
+        "description": "Heat curve gradient circuit 1"
+    },
+    "Gradient-C2": {
+        "address": "37D3",
+        "length": 1,
+        "unit": "IS10",
+        "access_mode": "write",
+        "description": "Heat curve gradient circuit 2"
+    },
+    "StatusBurner": {
+        "address": "55D3",
+        "length": 1,
+        "unit": "IUNON",
+        "description": "Status (%) of the burner"
+    },
+    "StatusBoilerPump": {
+        "address": "7660",
+        "length": 1,
+        "offset": 1,
+        "unit": "IUNON",
+        "description": "Status (%) of the boiler pump"
+    },
+    "BoilerStarts": {
+        "address": "088A",
+        "length": 4,
+        "unit": "IUNON",
+        "description": "Counter of boiler starts"
+    },
+    "TempBoilerActual": {
+        "address": "0802",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Actual temperature of the boiler"
+    },
+    "TempBoilerTarget": {
+        "address": "555A",
+        "length": 2,
+        "unit": "IS10",
+        "description": "Target temperature of the boiler"
+    }
+}

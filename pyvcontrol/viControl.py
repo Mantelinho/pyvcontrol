@@ -18,7 +18,7 @@
 # ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
 
-from pyvcontrol.viCommand import viCommand
+from pyvcontrol.viCommand import DEFAULT_CMD_SET, viCommand
 from pyvcontrol.viTelegram import viTelegram
 from pyvcontrol.viData import viData
 import logging
@@ -49,15 +49,20 @@ class viControlException(Exception):
 
 class viControl:
     # class to connect to viControl heating directly via Optolink
-    # only supports WO1C with protocol P300
-    def __init__(self, port='/dev/ttyUSB0'):
+    def __init__(self, port='/dev/ttyUSB0', command_set: dict = DEFAULT_CMD_SET):
         self.vs = viSerial(control_set, port)
         self.vs.connect()
+        self.command_set = command_set
         self.is_initialized = False
 
     def __del__(self):
         # destructor, releases serial port
-        self.vs.disconnect()
+        try:
+            if self.is_initialized:
+                self.terminate_communication()
+        finally:
+            if self.vs:
+                self.vs.disconnect()
 
     @deprecated(version='1.3', reason="replaced by execute_read_command")
     def execReadCmd(self, cmdname) -> viData:
@@ -66,7 +71,7 @@ class viControl:
 
     def execute_read_command(self, command_name) -> viData:
         """ sends a read command and gets the response."""
-        vc = viCommand(command_name)
+        vc = viCommand(command_name, self.command_set)
         return self.execute_command(vc, 'read')
 
     @deprecated(version='1.3', reason="replaced by execute_write_command")
@@ -76,7 +81,7 @@ class viControl:
 
     def execute_write_command(self, command_name, value) -> viData:
         """ sends a write command and gets the response."""
-        vc = viCommand(command_name)
+        vc = viCommand(command_name, self.command_set)
         vd = viData.create(vc.unit, value)
         return self.execute_command(vc, 'write', payload=vd)
 
@@ -89,7 +94,7 @@ class viControl:
     def execute_function_call(self, command_name, *function_args) -> viData:
         """ sends a function call command and gets response."""
         payload = bytearray((len(function_args), *function_args))
-        vc = viCommand(command_name)
+        vc = viCommand(command_name, self.command_set)
         return self.execute_command(vc, 'call', payload=payload)
 
     def execute_command(self, vc, access_mode, payload=bytes(0)) -> viData:
@@ -113,7 +118,7 @@ class viControl:
 
         # Receive response and evaluate data
         vr = self.vs.read(vt.response_length)  # receive response
-        vt = viTelegram.from_bytes(vr)
+        vt = viTelegram.from_bytes(vr, self.command_set)
         logging.debug(f'Requested {vt.response_length} bytes. Received telegram {vr.hex()}')
         if vt.tType == viTelegram.tTypes['error']:
             raise viControlException(f'{access_mode} command returned an error')
@@ -139,12 +144,14 @@ class viControl:
             # loop until interface is initialized
             read_byte = self.vs.read(1)
             if read_byte == ctrlcode['acknowledge']:
-                # Schnittstelle hat auf den Initialisierungsstring mit OK geantwortet. Die Abfrage von Werten kann beginnen.
+                # Schnittstelle hat auf den Initialisierungsstring mit OK geantwortet.
+                # Die Abfrage von Werten kann beginnen.
                 logging.debug(f'Step {ii}: Initialization successful')
                 self.is_initialized = True
                 break
             elif read_byte == ctrlcode['not_init']:
-                # Schnittstelle ist zurückgesetzt und wartet auf Daten; Antwort b'\x05' = Warten auf Initialisierungsstring
+                # Schnittstelle ist zurückgesetzt und wartet auf Daten; Antwort b'\x05' =
+                # Warten auf Initialisierungsstring
                 logging.debug(f'Step {ii}: Viessmann ready, not initialized, send sync')
                 self.vs.send(ctrlcode['sync_cmd'])
             elif read_byte == ctrlcode['error']:
@@ -162,6 +169,27 @@ class viControl:
             raise viControlException('Could not initialize communication')
 
         logging.debug('Communication initialized')
+        return True
+
+    def terminate_communication(self):
+        for ii in range(1, 10):
+            # loop until interface is not initialized anymore
+            self.vs.send(ctrlcode['reset_cmd'])
+            read_byte = self.vs.read(1)
+            if read_byte == ctrlcode['not_init']:
+                # Schnittstelle ist zurückgesetzt und wartet auf Daten; Antwort b'\x05' =
+                # Warten auf Initialisierungsstring
+                self.is_initialized = False
+                break
+            else:
+                # send reset
+                logging.debug(f'Received [{read_byte}]. Retry {ii}: Send reset')
+
+        if self.is_initialized:
+            # termination not successful
+            raise viControlException('Could not terminate communication')
+
+        logging.debug('Communication terminated')
         return True
 
 

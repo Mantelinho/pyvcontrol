@@ -1,0 +1,6 @@
+# installs dependencies from ./setup.py
+# Usage (in .venv scope): pip install -r requirements.txt
+.
+
+# Additionally for dev and test
+pytest
